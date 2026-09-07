@@ -1,0 +1,99 @@
+#+title: Ch3
+#+author: Liam Wirth
+#+date: 2026-09-06
+
+#+begin_src emacs-lisp
+(setq org-babel-lisp-eval-fn 'slime-eval)
+#+end_src
+#+begin_src emacs-lisp
+(setq org-babel-lisp-eval-fn 'sly-eval)
+#+end_src
+
+: sly-eval
+
+
+
+#+begin_src lisp :session *cd* :results silent
+(defun make-cd (title artist rating ripped)
+  (list :title title :artist artist :rating rating :ripped ripped))
+
+(defvar *db* nil)
+(defvar *dbpath* "./cds.db")
+
+(defun add-record (cd) (push cd *db*))
+#+end_src
+* Displaying the Database
+The initial approach uses =dolist= to loop over the database:
+
+#+begin_src lisp :session *cd* :results silent
+(defun dump-db-cmpl ()
+  (dolist (cd *db*)
+    (format t "~{~a:~10t~a~%~}~%" cd)))
+#+end_src
+
+Above function will loop over the entire DB that we have defined, but there are other ways that we can work with this as well.
+For example, we can skip using something like =dolist= altogether, and instead just take advantage of the fact that the FORMAT function is actually capable of handling/parsing lists itself!
+
+
+#+begin_src lisp :session *cd*
+(defun dump-db ()
+  (format t "~{~{~a:~10t~a~%~}~%~}" *db*))
+#+end_src
+
+so what changed, is we took advantage of the fact that using the ~ combined with the curly bracket tells the format function to evaluate a list right, and in the original function we were already evaluating a list of a p-list type, so why not just tell the format function that is the case {}
+
+* User Input & Interactive Prompts
+To handle prompting the user, we build out a robust mechanism that forces output streams and prevents stray newline characters from choking our input handlers.
+
+#+begin_src lisp :session *cd* :results silent
+(defun prompt-read (prompt)
+  (format *query-io* "~a: " prompt)
+  (force-output *query-io*)
+  (clear-input *query-io*)
+  (read-line *query-io*))
+
+(defun prompt-for-cd ()
+  (make-cd
+   (prompt-read "Title")
+   (prompt-read "Artist")
+   (or (parse-integer (prompt-read "Rating") :junk-allowed t) 0)
+   (y-or-n-p "Ripped [y/n]: ")))
+
+(defun add-cds ()
+  (loop (add-record (prompt-for-cd))
+        (if (not (y-or-n-p "Another? [y/n]: ")) (return))))
+#+end_src
+
+* Database Persistence (File I/O)
+=print= writes data back out in a raw format that Common Lisp can effortlessly read back in later using =read=.
+
+#+begin_src lisp :session *cd* :results silent
+(defun save-db (filename)
+  (with-open-file (out filename
+                       :direction :output
+                       :if-exists :supersede)
+    (with-standard-io-syntax
+      (print *db* out))))
+
+(defun load-db (filename)
+  (with-open-file (in filename)
+    (with-standard-io-syntax
+      (setf *db* (read in)))))
+#+end_src
+
+now, I already wrote a bunch of code that should give us entries, and then added all the CDs manually to a db and dumped it, so we'll load that here
+#+begin_src lisp :session *cd*
+(dump-db)
+#+end_src
+
+: NIL
+
+obviously returns nil, cant have that!
+
+
+#+begin_src lisp :session *cd*
+(load-db "./cds.db")
+#+end_src
+
+
+
