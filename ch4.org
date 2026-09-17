@@ -1,0 +1,50 @@
+#+title: Syntax and Semantics
+#+author: Liam Wirth
+#+date: 2026-09-06
+
+lisp descends from Algol
+John McCarthy intended for a more algol like syntax initially, he called it "M-Expressions" instead of what eventually became something else.
+
+
+wrote an article called "History of Lisp" might be worth looking into
+
+he said that m-expressions were given up on in favor of what became [[id:ec0bafd2-fd31-45b3-9aab-a6f6566e24bf][S-Expressions]]
+
+the breaking open the black box section talks about stuff i should be familiar with regarding like how languages are parsed, the standard wrofklow ertc
+
+
+lexical-analyzer \to parser \to evaluator
+
+
+common lisp (and I guess by extension, other lisp like languages) this is different, we instead of that above thing being what defines the "singular black box" of things, we instead have two separate black boxes
+
+one titled the 
+"Reader"
+whose job as i understand is to translate the text into what is called a Lisp Object, and then the other, an Evaluator whom implements semantics
+
+each defines a different layer/level of syntax.
+
+
+it might be helpful to think of s-expressions almost as like a first class abstract syntax tree
+
+what is neat is that S-expressions can then be treated as a way to serialize or store data (as we did with the simple database in chapter 3)
+
+furthermore, because language semantics/rules are defined as trees of objects instead of trees of text/tokens, we've opened the door to enable ourselves to generate code within the language (i.e macros, or in chapter three when we wrote a function that took a function as an argument)
+
+** S-Expressions
+theyare comprised of basic elements to be thought of as either a list, or an atom.
+
+Lists are delimitted by parentheses and contain any number of whitespace separated elements, Atoms are anything else, thus the element of a list is technically an s-expression, as is a list.
+
+lisp apparently also supports complex numbers which will be very interesting
+
+names used within lisp programs like a function name etc are represented by an object called a symbol. the reader has no idea what a given name is, if it's a function or something else etc. It's only job is to really read a sequence of characters and build an object that will cover whatever that name is.
+
+To ensure that the same textual name is always read as the same symbol, the reader interns symbols--after it has read the name and converted it to all uppercase, the reader looks in a table called a package for an existing symbol with the same name. If it can't find one, it creates a new symbol and adds it to the table. Otherwise, it returns the symbol already in the table. Thus, anywhere the same name appears in any s-expression, the same object will be used to represent it.8
+
+
+** S expressions as lisp forms
+once the reader translates it all they can be evaluated as lisp code. The CL Evaluation Rule defines a second llevel of syntax that determines which of the s-expressions can actually be treated as lisp forms.
+
+
+** TODO read on from the macros section
